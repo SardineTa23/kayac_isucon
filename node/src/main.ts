@@ -240,8 +240,10 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
   if (!allPlaylists.length) return []
 
   const playlists: Playlist[] = []
+  const userList: UserRow[] = []
   for (const playlist of allPlaylists) {
-    const user = await getUserByAccount(db, playlist.user_account)
+    const user = userList.filter(user => user.account == playlist.user_account)[0] || await getUserByAccount(db, playlist.user_account)
+      
     if (!user || user.is_ban) {
       // banされていたら除外する
       continue
