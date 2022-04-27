@@ -47,3 +47,14 @@ export type PlaylistFavoriteRow = RowDataPacket & {
   favorite_user_account: string
   created_at: Date
 }
+
+export type PlaylistWithUser = RowDataPacket & {
+  id: number
+  ulid: string
+  name: string
+  user_account: string
+  is_public: boolean
+  created_at: Date
+  updated_at: Date
+  user_display_name: string
+}
