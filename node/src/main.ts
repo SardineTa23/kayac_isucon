@@ -8,9 +8,11 @@ import mysql, { RowDataPacket, QueryError } from 'mysql2/promise'
 // const mysqlSession = require('express-mysql-session')(session)
 const anonUserAccount = '__'
 
-const RedisStore = require("connect-redis")(session)
-const { createClient } = require("redis")
-const redisClient = createClient({ legacyMode: true, host: 'redis', port: '6379' })
+import Redis from 'ioredis';
+import connectRedis from 'connect-redis';
+
+const RedisStore = connectRedis(session)
+const redisClient = new Redis({ port: 6379, host: 'redis' })
 redisClient.connect().catch(console.error)
 
 import {
@@ -49,10 +51,7 @@ const dbConfig = {
 const pool = mysql.createPool(dbConfig)
 // const sessionStore: session.Store = new redisSession({}, pool)
 
-const redisOptions = {
-
-}
-const sessionStore: session.Store = new RedisStore()
+const sessionStore: session.Store = new RedisStore({ client: redisClient })
 
 const app = express()
 app.use('/assets', express.static(publicPath + '/assets'))
