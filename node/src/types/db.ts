@@ -17,6 +17,7 @@ export type SongRow = RowDataPacket & {
   album: string
   track_number: number
   is_public: boolean
+  artist_name: string
 }
 
 export type ArtistRow = RowDataPacket & {
