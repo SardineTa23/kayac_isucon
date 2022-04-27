@@ -48,6 +48,15 @@ services:
     ports:
       - 13306:3306
     restart: always
+  
+  redis:
+    image: redis:5.0.7
+    command: redis-server --appendonly yes 
+    ports:
+      - 6379:6379
+    restart: always
+    volumes:
+      - ./redis/data:/data
 
 volumes:
   mysql:
