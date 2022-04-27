@@ -210,7 +210,7 @@ async function getSongByUlid(db: mysql.Connection, songUlid: string): Promise<So
 
 async function isFavoritedBy(db: mysql.Connection, userAccount: string, playlistId: number): Promise<boolean> {
   const [[row]] = await db.query<RowDataPacket[]>(
-    'SELECT COUNT(*) AS cnt FROM playlist_favorite where favorite_user_account = ? AND playlist_id = ? LIMIT 1',
+    'SELECT count AS cnt FROM playlist_favorite_count where favorite_user_account = ? AND playlist_id = ?',
     [userAccount, playlistId],
   )
   return row.cnt > 0
@@ -218,7 +218,7 @@ async function isFavoritedBy(db: mysql.Connection, userAccount: string, playlist
 
 async function getFavoritesCountByPlaylistId(db: mysql.Connection, playlistId: number): Promise<number> {
   const [[row]] = await db.query<RowDataPacket[]>(
-    'SELECT COUNT(*) AS cnt FROM playlist_favorite where playlist_id = ?',
+    'SELECT count AS cnt FROM playlist_favorite_count where playlist_id = ?',
     [playlistId],
   )
   return row.cnt
