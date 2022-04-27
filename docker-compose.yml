@@ -57,8 +57,9 @@ services:
       - 6379:6379
     restart: always
     volumes:
-      - ./redis/data:/data
+      - redis:/data
 
 volumes:
   mysql:
   gopkg:
+  redis:
