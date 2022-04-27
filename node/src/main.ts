@@ -234,7 +234,7 @@ async function getSongsCountByPlaylistId(db: mysql.Connection, playlistId: numbe
 
 async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: string): Promise<Playlist[]> {
   const [allPlaylists] = await db.query<PlaylistRow[]>(
-    'SELECT playlist.*, user.display_name FROM playlist JOIN user ON playlist.user_account = user.account WHERE playlist.is_public = ? AND user.is_ban = false ORDER BY playlist.created_at DESC LIMIT 100',
+    'SELECT p.*, user.display_name FROM (SELECT * FROM playlist ORDER BY created_at DESC LIMIT 200) as p JOIN user ON p.user_account = user.account WHERE p.is_public = ? AND user.is_ban = false',
     [true],
   )
   if (!allPlaylists.length) return []
