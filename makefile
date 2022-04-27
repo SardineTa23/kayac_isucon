@@ -4,4 +4,9 @@ bench:
 	cd /home/isucon && ./bench.sh
 
 .PHONY: alp_avg
+alp_avg:
 	alp -f ~/webapp/nginx/logs/access.log --avg
+
+.PHONY: restart
+restart:
+	docker-compoes up -d --build
