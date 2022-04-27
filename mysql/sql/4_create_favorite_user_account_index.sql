@@ -1,0 +1,1 @@
+create index favorite_user_account_index on playlist_favorite(favorite_user_account);
