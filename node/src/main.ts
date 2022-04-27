@@ -900,12 +900,16 @@ app.post('/api/playlist/:playlistUlid/favorite', async (req: Request, res: Respo
           createdAt: createdTimestamp,
         })
       }
+      playlist.favorite_count++
+      playlist.is_favorited = true
     } else {
       // delete
       await db.query(
         'DELETE FROM playlist_favorite WHERE `playlist_id` = ? AND `favorite_user_account` = ?',
         [playlist.id, req.session.user_account],
       )
+      playlist.favorite_count--
+      playlist.is_favorited = false
     }
 
     const body: SinglePlaylistResponse = {
