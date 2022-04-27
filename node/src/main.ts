@@ -234,7 +234,7 @@ async function getSongsCountByPlaylistId(db: mysql.Connection, playlistId: numbe
 
 async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: string): Promise<Playlist[]> {
   const [allPlaylists] = await db.query<PlaylistRow[]>(
-    'SELECT * FROM playlist JOIN user ON playlist.user_account = user.account WHERE playlist.is_public = * AND user.is_ban = false ORDER BY playlist.created_at DESC LIMIT 100',
+    'SELECT playlist.*, user.display_name FROM playlist JOIN user ON playlist.user_account = user.account WHERE playlist.is_public = * AND user.is_ban = false ORDER BY playlist.created_at DESC LIMIT 100',
     [true],
   )
   if (!allPlaylists.length) return []
@@ -242,13 +242,6 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
   const playlists: Playlist[] = []
   const userList: UserRow[] = []
   for (const playlist of allPlaylists) {
-    const user = userList.filter(user => user.account == playlist.user_account)[0] || await getUserByAccount(db, playlist.user_account)
-      
-    if (!user || user.is_ban) {
-      // banされていたら除外する
-      continue
-    }
-
     const songCount = await getSongsCountByPlaylistId(db, playlist.id)
     const favoriteCount = await getFavoritesCountByPlaylistId(db, playlist.id)
 
@@ -261,8 +254,8 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
     playlists.push({
       ulid: playlist.ulid,
       name: playlist.name,
-      user_display_name: user.display_name,
-      user_account: user.account,
+      user_display_name: playlist.display_name,
+      user_account: userAccount,
       song_count: songCount,
       favorite_count: favoriteCount,
       is_favorited: isFavorited,
