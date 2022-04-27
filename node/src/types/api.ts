@@ -1,5 +1,6 @@
 // API essential types
 export type Playlist = {
+  id?: number;
   ulid: string
   name: string
   user_display_name: string

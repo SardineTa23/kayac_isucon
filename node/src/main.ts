@@ -412,6 +412,7 @@ async function getPlaylistDetailByPlaylistUlid(db: mysql.Connection, playlistUli
   }))
 
   return {
+    id: playlist.id || 0,
     ulid: playlist.ulid,
     name: playlist.name,
     user_display_name: user.display_name,
@@ -877,9 +878,9 @@ app.post('/api/playlist/:playlistUlid/favorite', async (req: Request, res: Respo
 
   const db = await pool.getConnection()
   try {
-    const playlist = await getPlaylistByUlid(db, playlistUlid)
+    const playlist = await getPlaylistDetailByPlaylistUlid(db, playlistUlid, req.session.user_account)
     if (!playlist) {
-      return error(req, res, 404, 'playlist not found')
+      return error(req, res, 404, 'failed to fetch playlist detail')
     }
     // 操作対象のプレイリストが他のユーザーの場合、banされているかプレイリストがprivateならばnot found
     if (playlist.user_account !== user.account) {
@@ -891,10 +892,10 @@ app.post('/api/playlist/:playlistUlid/favorite', async (req: Request, res: Respo
     if (is_favorited) {
       // insert
       const createdTimestamp = new Date
-      const playlistFavorite = await getPlaylistFavoritesByPlaylistIdAndUserAccount(db, playlist.id, req.session.user_account)
+      const playlistFavorite = await getPlaylistFavoritesByPlaylistIdAndUserAccount(db, playlist.id || 0, req.session.user_account)
       if (!playlistFavorite) {
         await insertPlaylistFavorite(db, {
-          playlistId: playlist.id,
+          playlistId: playlist.id || 0,
           favoriteUserAccount: req.session.user_account,
           createdAt: createdTimestamp,
         })
@@ -907,15 +908,10 @@ app.post('/api/playlist/:playlistUlid/favorite', async (req: Request, res: Respo
       )
     }
 
-    const playlistDetail = await getPlaylistDetailByPlaylistUlid(db, playlist.ulid, req.session.user_account)
-    if (!playlistDetail) {
-      return error(req, res, 404, 'failed to fetch playlist detail')
-    }
-
     const body: SinglePlaylistResponse = {
       result: true,
       status: 200,
-      playlist: playlistDetail,
+      playlist: playlist,
     }
     res.status(body.status).json(body)
   } catch (err) {
