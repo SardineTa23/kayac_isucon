@@ -281,6 +281,12 @@ async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: st
     // 非公開のものは除外する
     if (!playlist || !playlist.is_public) continue
 
+    const user = await getUserByAccount(db, playlist.user_account)
+    if (!user || user.is_ban) {
+      // banされていたら除外する
+      continue
+    }
+
     const songCount = await getSongsCountByPlaylistId(db, playlist.id)
     const favoriteCount = await getFavoritesCountByPlaylistId(db, playlist.id)
 
@@ -293,8 +299,8 @@ async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: st
     playlists.push({
       ulid: playlist.ulid,
       name: playlist.name,
-      user_display_name: row.display_name || '',
-      user_account: playlist.user_account,
+      user_display_name: user.display_name,
+      user_account: user.account,
       song_count: songCount,
       favorite_count: favoriteCount,
       is_favorited: isFavorited,
