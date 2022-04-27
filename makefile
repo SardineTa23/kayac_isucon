@@ -9,4 +9,4 @@ alp_avg:
 
 .PHONY: restart
 restart:
-	docker-compoes up -d --build
+	docker-compose up -d --build
