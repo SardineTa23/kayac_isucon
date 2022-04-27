@@ -1,4 +1,3 @@
+.PHONY: bench
 bench:
-	cd /home/isucon
-	./bench.sh
-
+	cd /home/isucon && ./bench.sh
