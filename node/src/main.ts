@@ -10,7 +10,7 @@ const anonUserAccount = '__'
 
 import {
   UserRow, SongRow, ArtistRow,
-  PlaylistRow, PlaylistSongRow, PlaylistFavoriteRow, PlaylistWithUser,
+  PlaylistRow, PlaylistSongRow, PlaylistFavoriteRow, PlaylistWithUser, PlaylistWithUserAndFavoriteCount,
 } from './types/db'
 
 import {
@@ -270,37 +270,42 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
 }
 
 async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: string): Promise<Playlist[]> {
-  const [popular] = await db.query<PlaylistFavoriteRow[]>(
-    `SELECT playlist_id, count(*) AS favorite_count FROM playlist_favorite GROUP BY playlist_id ORDER BY count(*) DESC`,
+  const [popular] = await db.query<PlaylistWithUserAndFavoriteCount[]>(
+    `SELECT p.*, u.display_name, count(pf.id) AS favorite_count
+    FROM playlist as p 
+    LEFT JOIN playlist_favorite as pf
+    ON p.id = pf.playlist_id
+    LEFT JOIN user as u
+    ON p.user_account = u.account
+    WHERE u.is_ban = false AND p.is_public = true
+    GROUP BY p.id
+    ORDER BY favorite_count DESC
+    LIMIT 100`,
   )
   if (!popular.length) return []
 
   const playlists: Playlist[] = []
   for (const row of popular) {
-    const playlist = await getPlaylistById(db, row.playlist_id)
-    // 非公開のものは除外する
-    if (!playlist || !playlist.is_public) continue
-
-    const songCount = await getSongsCountByPlaylistId(db, playlist.id)
-    const favoriteCount = await getFavoritesCountByPlaylistId(db, playlist.id)
+    const songCount = await getSongsCountByPlaylistId(db, row.id)
+    const favoriteCount = await getFavoritesCountByPlaylistId(db, row.id)
 
     let isFavorited: boolean = false
     if (userAccount != anonUserAccount) {
       // 認証済みの場合はfavを取得
-      isFavorited = await isFavoritedBy(db, userAccount, playlist.id)
+      isFavorited = await isFavoritedBy(db, userAccount, row.id)
     }
 
     playlists.push({
-      ulid: playlist.ulid,
-      name: playlist.name,
-      user_display_name: playlist.user_display_name,
-      user_account: playlist.user_account,
+      ulid: row.ulid,
+      name: row.name,
+      user_display_name: row.display_name,
+      user_account: row.user_account,
       song_count: songCount,
       favorite_count: favoriteCount,
       is_favorited: isFavorited,
-      is_public: !!playlist.is_public,
-      created_at: playlist.created_at,
-      updated_at: playlist.updated_at
+      is_public: !!row.is_public,
+      created_at: row.created_at,
+      updated_at: row.updated_at
     })
     if (playlists.length >= 100) {
       break
