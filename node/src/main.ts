@@ -254,7 +254,7 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
       ulid: playlist.ulid,
       name: playlist.name,
       user_display_name: playlist.display_name,
-      user_account: userAccount,
+      user_account: playlist.user_account,
       song_count: songCount,
       favorite_count: favoriteCount,
       is_favorited: isFavorited,
@@ -271,7 +271,12 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
 
 async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: string): Promise<Playlist[]> {
   const [popular] = await db.query<PlaylistFavoriteRow[]>(
-    `SELECT playlist_id, count(*) AS favorite_count FROM playlist_favorite GROUP BY playlist_id ORDER BY count(*) DESC`,
+    `SELECT pf.playlist_id, u.account as user_account, u.display_name count(*) AS favorite_count
+    FROM playlist_favorite as pf
+    JOIN user as u ON pf.favorite_user_account = u.account
+    WHERE u.is_ban = false
+    GROUP BY pf.playlist_id
+    ORDER BY count(*) DESC`,
   )
   if (!popular.length) return []
 
@@ -280,12 +285,6 @@ async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: st
     const playlist = await getPlaylistById(db, row.playlist_id)
     // 非公開のものは除外する
     if (!playlist || !playlist.is_public) continue
-
-    const user = await getUserByAccount(db, playlist.user_account)
-    if (!user || user.is_ban) {
-      // banされていたら除外する
-      continue
-    }
 
     const songCount = await getSongsCountByPlaylistId(db, playlist.id)
     const favoriteCount = await getFavoritesCountByPlaylistId(db, playlist.id)
@@ -299,8 +298,8 @@ async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: st
     playlists.push({
       ulid: playlist.ulid,
       name: playlist.name,
-      user_display_name: user.display_name,
-      user_account: user.account,
+      user_display_name: row.display_name,
+      user_account: playlist.user_account,
       song_count: songCount,
       favorite_count: favoriteCount,
       is_favorited: isFavorited,
