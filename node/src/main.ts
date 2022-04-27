@@ -10,7 +10,7 @@ const anonUserAccount = '__'
 
 const RedisStore = require("connect-redis")(session)
 const { createClient } = require("redis")
-let redisClient = createClient({ legacyMode: true })
+const redisClient = createClient({ legacyMode: true, host: 'redis', port: '6379' })
 redisClient.connect().catch(console.error)
 
 import {
@@ -48,6 +48,10 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig)
 // const sessionStore: session.Store = new redisSession({}, pool)
+
+const redisOptions = {
+
+}
 const sessionStore: session.Store = new RedisStore()
 
 const app = express()
