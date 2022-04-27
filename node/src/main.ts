@@ -221,7 +221,7 @@ async function getFavoritesCountByPlaylistId(db: mysql.Connection, playlistId: n
     'SELECT count AS cnt FROM playlist_favorite_count where playlist_id = ?',
     [playlistId],
   )
-  return row.cnt
+  return row.cnt || 0
 }
 
 async function getSongsCountByPlaylistId(db: mysql.Connection, playlistId: number): Promise<number> {
