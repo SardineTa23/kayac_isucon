@@ -5,8 +5,13 @@ import bcrypt from 'bcrypt'
 import util from 'util'
 import { ulid } from 'ulid'
 import mysql, { RowDataPacket, QueryError } from 'mysql2/promise'
-const mysqlSession = require('express-mysql-session')(session)
+// const mysqlSession = require('express-mysql-session')(session)
 const anonUserAccount = '__'
+
+const RedisStore = require("connect-redis")(session)
+const { createClient } = require("redis")
+let redisClient = createClient({ legacyMode: true })
+redisClient.connect().catch(console.error)
 
 import {
   UserRow, SongRow, ArtistRow,
@@ -42,15 +47,23 @@ const dbConfig = {
 }
 
 const pool = mysql.createPool(dbConfig)
-const sessionStore: session.Store = new mysqlSession({}, pool)
+// const sessionStore: session.Store = new redisSession({}, pool)
+const sessionStore: session.Store = new RedisStore()
 
 const app = express()
 app.use('/assets', express.static(publicPath + '/assets'))
 app.use(express.json())
+// app.use(session({
+//   name: sessionCookieName,
+//   secret: 'powawa',
+//   store: sessionStore,
+//   resave: false,
+//   saveUninitialized: false,
+// }))
 app.use(session({
   name: sessionCookieName,
   secret: 'powawa',
-  store: sessionStore,
+  store: new RedisStore({ client: redisClient }),
   resave: false,
   saveUninitialized: false,
 }))
