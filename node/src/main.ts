@@ -298,7 +298,7 @@ async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: st
     playlists.push({
       ulid: playlist.ulid,
       name: playlist.name,
-      user_display_name: row.display_name,
+      user_display_name: row.display_name || '',
       user_account: playlist.user_account,
       song_count: songCount,
       favorite_count: favoriteCount,
