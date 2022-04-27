@@ -392,19 +392,19 @@ async function getPlaylistDetailByPlaylistUlid(db: mysql.Connection, playlistUli
 
   const songs: Song[] = await Promise.all(playlistSongRows.map(async (row: PlaylistSongRow): Promise<Song> => {
     const [[song]] = await db.query<SongRow[]>(
-      'SELECT * FROM song WHERE id = ?',
+      'SELECT s.*, a.name FROM song as s INNER JOIN artist as a ON s.artist_id = a.id WHERE s.id = ?',
       [row.song_id],
     )
 
-    const [[artist]] = await db.query<ArtistRow[]>(
-      'SELECT * FROM artist WHERE id = ?',
-      [song.artist_id],
-    )
+    // const [[artist]] = await db.query<ArtistRow[]>(
+    //   'SELECT * FROM artist WHERE id = ?',
+    //   [song.artist_id],
+    // )
 
     return {
       ulid: song.ulid,
       title: song.title,
-      artist: artist.name,
+      artist: song.artist_name,
       album: song.album,
       track_number: song.track_number,
       is_public: !!song.is_public,
