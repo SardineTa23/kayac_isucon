@@ -271,12 +271,7 @@ async function getRecentPlaylistSummaries(db: mysql.Connection, userAccount: str
 
 async function getPopularPlaylistSummaries(db: mysql.Connection, userAccount: string): Promise<Playlist[]> {
   const [popular] = await db.query<PlaylistFavoriteRow[]>(
-    `SELECT pf.playlist_id, u.account as user_account, u.display_name count(*) AS favorite_count
-    FROM playlist_favorite as pf
-    JOIN user as u ON pf.favorite_user_account = u.account
-    WHERE u.is_ban = false
-    GROUP BY pf.playlist_id
-    ORDER BY count(*) DESC`,
+    `SELECT playlist_id, count(*) AS favorite_count FROM playlist_favorite GROUP BY playlist_id ORDER BY count(*) DESC`,
   )
   if (!popular.length) return []
 

@@ -46,5 +46,4 @@ export type PlaylistFavoriteRow = RowDataPacket & {
   playlist_id: number
   favorite_user_account: string
   created_at: Date
-  display_name?: string;
 }
