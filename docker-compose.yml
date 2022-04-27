@@ -30,6 +30,7 @@ services:
     volumes:
       - ./public:/home/isucon/webapp/public
       - gopkg:/usr/local/go/pkg
+    command: npm run server
     init: true
     restart: always
 
